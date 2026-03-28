@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = '/api/products';
+const configuredApiBase = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/$/, '');
+const API_BASE = `${configuredApiBase}/api/products`;
 
 const initialFormState = {
   name: '',

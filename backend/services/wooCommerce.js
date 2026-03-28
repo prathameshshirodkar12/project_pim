@@ -18,6 +18,22 @@ const getWooConfig = () => {
   };
 };
 
+const buildWooUrl = (baseUrl, resourcePath = '') => {
+  const url = new URL(baseUrl);
+  const normalizedResourcePath = resourcePath.startsWith('/') ? resourcePath : `/${resourcePath}`;
+
+  if (url.searchParams.has('rest_route')) {
+    const currentRoute = url.searchParams.get('rest_route') || '';
+    const normalizedRoute = currentRoute.endsWith('/') ? currentRoute.slice(0, -1) : currentRoute;
+    url.searchParams.set('rest_route', `${normalizedRoute}${normalizedResourcePath}`);
+    return url.toString();
+  }
+
+  const normalizedBasePath = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+  url.pathname = `${normalizedBasePath}${normalizedResourcePath}`;
+  return url.toString();
+};
+
 const encode = (value) =>
   encodeURIComponent(String(value))
     .replace(/[!'()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
@@ -82,7 +98,17 @@ const formatWooError = (error) => {
     return error.response.data;
   }
 
-  return error.message;
+  if (error.code || error.message) {
+    return {
+      code: error.code || 'WOO_REQUEST_FAILED',
+      message: error.message || 'WooCommerce request failed.'
+    };
+  }
+
+  return {
+    code: 'WOO_REQUEST_FAILED',
+    message: 'WooCommerce request failed.'
+  };
 };
 
 const requestWoo = async ({ method, url, consumerKey, consumerSecret, data, params }) => {
@@ -122,7 +148,7 @@ const createWooProduct = async (product) => {
 
   const response = await requestWoo({
     method: 'post',
-    url: `${config.baseUrl}/products`,
+    url: buildWooUrl(config.baseUrl, '/products'),
     consumerKey: config.auth.username,
     consumerSecret: config.auth.password,
     data: buildWooPayload(product)
@@ -143,7 +169,7 @@ const updateWooProduct = async (wooProductId, product) => {
 
   const response = await requestWoo({
     method: 'put',
-    url: `${config.baseUrl}/products/${wooProductId}`,
+    url: buildWooUrl(config.baseUrl, `/products/${wooProductId}`),
     consumerKey: config.auth.username,
     consumerSecret: config.auth.password,
     data: buildWooPayload(product)
@@ -164,7 +190,7 @@ const deleteWooProduct = async (wooProductId) => {
 
   const response = await requestWoo({
     method: 'delete',
-    url: `${config.baseUrl}/products/${wooProductId}`,
+    url: buildWooUrl(config.baseUrl, `/products/${wooProductId}`),
     consumerKey: config.auth.username,
     consumerSecret: config.auth.password,
     params: { force: true }

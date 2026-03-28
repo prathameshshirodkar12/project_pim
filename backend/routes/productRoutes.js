@@ -45,9 +45,10 @@ router.post('/', async (req, res) => {
         wooProduct: wooResult.data
       });
     } catch (wooErr) {
-      return res.status(500).json({
+      return res.status(201).json({
         message: 'Product created locally but failed to sync with WooCommerce',
         localProduct: savedProduct,
+        wooSkipped: false,
         wooError: formatWooError(wooErr)
       });
     }
@@ -86,9 +87,10 @@ router.put('/:id', async (req, res) => {
         wooProduct: wooResult.skipped ? undefined : wooResult.data
       });
     } catch (wooErr) {
-      return res.status(500).json({
+      return res.json({
         message: 'Product updated locally but failed to sync with WooCommerce',
         localProduct: updated,
+        wooSkipped: false,
         wooError: formatWooError(wooErr)
       });
     }
