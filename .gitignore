@@ -1,0 +1,6 @@
+backend/.env
+backend/backend-run.log
+frontend/frontend-run.log
+backend/node_modules/
+frontend/node_modules/
+build/
